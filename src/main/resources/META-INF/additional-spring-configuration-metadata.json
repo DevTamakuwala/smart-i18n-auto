@@ -1,0 +1,129 @@
+{
+  "groups": [
+    {
+      "name": "smart.i18n",
+      "type": "in.devtamakuwala.smarti18nauto.config.SmartI18nProperties",
+      "description": "Smart I18N Auto - Automatic internationalization middleware configuration."
+    }
+  ],
+  "properties": [
+    {
+      "name": "smart.i18n.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable or disable the Smart I18N Auto middleware entirely.",
+      "defaultValue": true
+    },
+    {
+      "name": "smart.i18n.source-locale",
+      "type": "java.lang.String",
+      "description": "The base/source language of the application content (BCP-47 code).",
+      "defaultValue": "en"
+    },
+    {
+      "name": "smart.i18n.default-target-locale",
+      "type": "java.lang.String",
+      "description": "Default target language when none is detected from the request.",
+      "defaultValue": "en"
+    },
+    {
+      "name": "smart.i18n.header-name",
+      "type": "java.lang.String",
+      "description": "Custom HTTP header name to read target language from."
+    },
+    {
+      "name": "smart.i18n.query-param",
+      "type": "java.lang.String",
+      "description": "Query parameter name to read target language from."
+    },
+    {
+      "name": "smart.i18n.translate-request-body",
+      "type": "java.lang.Boolean",
+      "description": "Whether to translate incoming request bodies to the source locale.",
+      "defaultValue": false
+    },
+    {
+      "name": "smart.i18n.provider.active",
+      "type": "java.lang.String",
+      "description": "Explicitly select a provider: 'google-cloud', 'gemini', or 'openai'. Auto-detected if blank."
+    },
+    {
+      "name": "smart.i18n.provider.fallback-enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enable fallback chain: if the primary provider fails, try the next available one.",
+      "defaultValue": false
+    },
+    {
+      "name": "smart.i18n.provider.timeout-ms",
+      "type": "java.lang.Long",
+      "description": "Timeout in milliseconds for provider API calls.",
+      "defaultValue": 10000
+    },
+    {
+      "name": "smart.i18n.google-cloud.api-key",
+      "type": "java.lang.String",
+      "description": "Google Cloud Translation API key."
+    },
+    {
+      "name": "smart.i18n.gemini.api-key",
+      "type": "java.lang.String",
+      "description": "Google Gemini API key."
+    },
+    {
+      "name": "smart.i18n.gemini.model",
+      "type": "java.lang.String",
+      "description": "Gemini model to use.",
+      "defaultValue": "gemini-2.0-flash"
+    },
+    {
+      "name": "smart.i18n.openai.api-key",
+      "type": "java.lang.String",
+      "description": "OpenAI API key."
+    },
+    {
+      "name": "smart.i18n.openai.model",
+      "type": "java.lang.String",
+      "description": "OpenAI model to use.",
+      "defaultValue": "gpt-4o-mini"
+    },
+    {
+      "name": "smart.i18n.cache.ttl-minutes",
+      "type": "java.lang.Long",
+      "description": "Cache time-to-live in minutes.",
+      "defaultValue": 60
+    },
+    {
+      "name": "smart.i18n.cache.max-size",
+      "type": "java.lang.Long",
+      "description": "Maximum number of cache entries.",
+      "defaultValue": 10000
+    },
+    {
+      "name": "smart.i18n.batch.max-size",
+      "type": "java.lang.Integer",
+      "description": "Maximum number of texts per batch translation call.",
+      "defaultValue": 50
+    },
+    {
+      "name": "smart.i18n.filter.min-length",
+      "type": "java.lang.Integer",
+      "description": "Minimum string length to be considered for translation.",
+      "defaultValue": 2
+    },
+    {
+      "name": "smart.i18n.filter.skip-patterns",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Additional regex patterns. Strings matching any of these will be skipped from translation."
+    }
+  ],
+  "hints": [
+    {
+      "name": "smart.i18n.provider.active",
+      "values": [
+        { "value": "google-cloud", "description": "Google Cloud Translation API v2" },
+        { "value": "gemini", "description": "Google Gemini API" },
+        { "value": "openai", "description": "OpenAI Chat Completion API" }
+      ]
+    }
+  ]
+}
+
