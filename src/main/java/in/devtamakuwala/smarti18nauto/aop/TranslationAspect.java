@@ -1,5 +1,6 @@
 package in.devtamakuwala.smarti18nauto.aop;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import in.devtamakuwala.smarti18nauto.annotation.AutoTranslate;
 import in.devtamakuwala.smarti18nauto.config.SmartI18nProperties;
 import in.devtamakuwala.smarti18nauto.engine.TranslationEngine;
@@ -29,13 +30,16 @@ public class TranslationAspect {
     private final TranslationEngine translationEngine;
     private final LanguageDetectionUtil languageDetectionUtil;
     private final SmartI18nProperties properties;
+    private final ObjectMapper objectMapper;
 
     public TranslationAspect(TranslationEngine translationEngine,
                               LanguageDetectionUtil languageDetectionUtil,
-                              SmartI18nProperties properties) {
+                              SmartI18nProperties properties,
+                              ObjectMapper objectMapper) {
         this.translationEngine = translationEngine;
         this.languageDetectionUtil = languageDetectionUtil;
         this.properties = properties;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -74,13 +78,29 @@ public class TranslationAspect {
                     joinPoint.getSignature().getName(),
                     sourceLang, targetLang);
 
-            return translationEngine.translateObject(result, sourceLang, targetLang);
+            // Deep-copy to avoid mutating the original object
+            Object copy = deepCopy(result);
+            return translationEngine.translateObject(copy, sourceLang, targetLang);
         } catch (Exception e) {
             log.error("AOP translation failed for {}.{}: {}",
                     joinPoint.getTarget().getClass().getSimpleName(),
                     joinPoint.getSignature().getName(),
                     e.getMessage(), e);
             return result; // return original on failure
+        }
+    }
+
+    private Object deepCopy(Object body) {
+        if (body instanceof String) {
+            return body;
+        }
+        try {
+            String json = objectMapper.writeValueAsString(body);
+            return objectMapper.readValue(json, body.getClass());
+        } catch (Exception e) {
+            log.warn("Could not deep-copy body of type {}, translating in-place: {}",
+                    body.getClass().getSimpleName(), e.getMessage());
+            return body;
         }
     }
 }

@@ -18,7 +18,7 @@ import java.util.Optional;
  * </ol>
  * When hybrid/fallback mode is enabled, it tries providers in priority order
  * until one succeeds.
- * </p>
+ *
  *
  * @author devtamakuwala
  * @since 0.0.1

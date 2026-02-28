@@ -206,9 +206,10 @@ public class SmartI18nAutoConfiguration {
         public TranslationResponseBodyAdvice smartI18nResponseBodyAdvice(
                 TranslationEngine translationEngine,
                 LanguageDetectionUtil languageDetectionUtil,
-                SmartI18nProperties properties) {
+                SmartI18nProperties properties,
+                ObjectMapper objectMapper) {
             log.info("Smart I18N Auto: Registering response body translation advice");
-            return new TranslationResponseBodyAdvice(translationEngine, languageDetectionUtil, properties);
+            return new TranslationResponseBodyAdvice(translationEngine, languageDetectionUtil, properties, objectMapper);
         }
 
         @Bean
@@ -236,9 +237,10 @@ public class SmartI18nAutoConfiguration {
         public TranslationAspect smartI18nTranslationAspect(
                 TranslationEngine translationEngine,
                 LanguageDetectionUtil languageDetectionUtil,
-                SmartI18nProperties properties) {
+                SmartI18nProperties properties,
+                ObjectMapper objectMapper) {
             log.info("Smart I18N Auto: Registering translation AOP aspect");
-            return new TranslationAspect(translationEngine, languageDetectionUtil, properties);
+            return new TranslationAspect(translationEngine, languageDetectionUtil, properties, objectMapper);
         }
     }
 }

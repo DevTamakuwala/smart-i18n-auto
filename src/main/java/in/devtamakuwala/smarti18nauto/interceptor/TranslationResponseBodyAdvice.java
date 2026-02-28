@@ -1,5 +1,6 @@
 package in.devtamakuwala.smarti18nauto.interceptor;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import in.devtamakuwala.smarti18nauto.annotation.AutoTranslate;
 import in.devtamakuwala.smarti18nauto.config.SmartI18nProperties;
 import in.devtamakuwala.smarti18nauto.engine.TranslationEngine;
@@ -23,7 +24,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  *   <li>The controller method or class is annotated with {@link AutoTranslate}</li>
  *   <li>The {@code Accept-Language} header indicates a language different from the base language</li>
  * </ul>
- * </p>
+ *
  *
  * @author devtamakuwala
  * @since 0.0.1
@@ -36,13 +37,16 @@ public class TranslationResponseBodyAdvice implements ResponseBodyAdvice<Object>
     private final TranslationEngine translationEngine;
     private final LanguageDetectionUtil languageDetectionUtil;
     private final SmartI18nProperties properties;
+    private final ObjectMapper objectMapper;
 
     public TranslationResponseBodyAdvice(TranslationEngine translationEngine,
                                           LanguageDetectionUtil languageDetectionUtil,
-                                          SmartI18nProperties properties) {
+                                          SmartI18nProperties properties,
+                                          ObjectMapper objectMapper) {
         this.translationEngine = translationEngine;
         this.languageDetectionUtil = languageDetectionUtil;
         this.properties = properties;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -79,7 +83,12 @@ public class TranslationResponseBodyAdvice implements ResponseBodyAdvice<Object>
                     returnType.getDeclaringClass().getSimpleName(),
                     returnType.getMethod() != null ? returnType.getMethod().getName() : "unknown");
 
-            return translationEngine.translateObject(body, sourceLang, targetLang);
+            // Deep-copy the body before translating to avoid mutating the original DTO.
+            // Without this, if the controller returns the same object instance across requests,
+            // the first translation overwrites the original English values and subsequent
+            // requests for different languages see already-translated text as the source.
+            Object copy = deepCopy(body);
+            return translationEngine.translateObject(copy, sourceLang, targetLang);
         } catch (Exception e) {
             log.error("Response body translation failed: {}", e.getMessage(), e);
             return body; // return original on failure
@@ -115,6 +124,25 @@ public class TranslationResponseBodyAdvice implements ResponseBodyAdvice<Object>
         }
 
         return languageDetectionUtil.resolveTargetLanguage();
+    }
+
+    /**
+     * Deep-copies the body object via Jackson serialization/deserialization.
+     * This ensures the original DTO is never mutated by in-place translation.
+     * Falls back to the original object if copying fails (e.g., non-serializable types).
+     */
+    private Object deepCopy(Object body) {
+        if (body instanceof String) {
+            return body; // Strings are immutable, no need to copy
+        }
+        try {
+            String json = objectMapper.writeValueAsString(body);
+            return objectMapper.readValue(json, body.getClass());
+        } catch (Exception e) {
+            log.warn("Could not deep-copy body of type {}, translating in-place: {}",
+                    body.getClass().getSimpleName(), e.getMessage());
+            return body;
+        }
     }
 }
 

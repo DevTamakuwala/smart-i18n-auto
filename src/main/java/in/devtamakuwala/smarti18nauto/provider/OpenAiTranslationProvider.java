@@ -120,11 +120,21 @@ public class OpenAiTranslationProvider implements TranslationProvider {
 
         requestBody.put("temperature", 0.1);
 
+        // Serialize to JSON string ourselves to avoid WebClient using the consumer app's
+        // ObjectMapper, which may serialize Jackson ObjectNode metadata as extra fields
+        String jsonBody;
+        try {
+            jsonBody = objectMapper.writeValueAsString(requestBody);
+        } catch (Exception e) {
+            log.error("Failed to serialize OpenAI request body", e);
+            return new ArrayList<>(texts);
+        }
+
         String responseBody = webClient.post()
                 .uri("/chat/completions")
                 .header("Authorization", "Bearer " + apiKey)
                 .header("Content-Type", "application/json")
-                .bodyValue(requestBody)
+                .bodyValue(jsonBody)
                 .retrieve()
                 .bodyToMono(String.class)
                 .block(timeout);

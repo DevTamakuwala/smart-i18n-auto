@@ -91,18 +91,29 @@ public class GoogleCloudTranslationProvider implements TranslationProvider {
         String apiKey = properties.getGoogleCloud().getApiKey();
         Duration timeout = Duration.ofMillis(properties.getProvider().getTimeoutMs());
 
-        // Build JSON POST body instead of leaking API key + texts in URL query params
+        // Build JSON POST body
         Map<String, Object> requestBody = new java.util.LinkedHashMap<>();
         requestBody.put("q", texts);
         requestBody.put("source", sourceLang);
         requestBody.put("target", targetLang);
         requestBody.put("format", "text");
 
+        // Serialize to JSON string ourselves to avoid WebClient using the consumer app's
+        // ObjectMapper, which may serialize objects with unexpected extra fields
+        String jsonBody;
+        try {
+            jsonBody = objectMapper.writeValueAsString(requestBody);
+        } catch (Exception e) {
+            log.error("Failed to serialize Google Cloud Translation request body", e);
+            return new ArrayList<>(texts);
+        }
+
         String responseBody = webClient.post()
-                .uri("")
-                .header("X-Goog-Api-Key", apiKey)
+                .uri(uriBuilder -> uriBuilder
+                        .queryParam("key", apiKey)
+                        .build())
                 .header("Content-Type", "application/json")
-                .bodyValue(requestBody)
+                .bodyValue(jsonBody)
                 .retrieve()
                 .bodyToMono(String.class)
                 .block(timeout);

@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Respects {@link SkipTranslation} annotations on fields.
  * Enforces a configurable maximum traversal depth to prevent {@link StackOverflowError}.
  * Caches reflected field metadata per class to avoid repeated reflection overhead.
- * </p>
+ *
  *
  * @author devtamakuwala
  * @since 0.0.2

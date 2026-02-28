@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
  *   <li>Single-character or very short tokens</li>
  *   <li>Matching user-configured skip patterns</li>
  * </ul>
- * </p>
+ *
  *
  * @author devtamakuwala
  * @since 0.0.1

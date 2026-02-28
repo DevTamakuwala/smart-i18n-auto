@@ -19,7 +19,7 @@ import java.util.Locale;
  *   <li>{@code Accept-Language} header</li>
  *   <li>Default target locale from properties</li>
  * </ol>
- * </p>
+ *
  *
  * @author devtamakuwala
  * @since 0.0.1

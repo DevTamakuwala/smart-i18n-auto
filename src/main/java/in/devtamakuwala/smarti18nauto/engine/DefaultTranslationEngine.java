@@ -27,9 +27,8 @@ import java.util.*;
  *   <li>Fan results back to all references (including duplicates)</li>
  *   <li>Mark the root object as translated in the current scope</li>
  * </ol>
- * </p>
  *
- * <h3>Thread Safety</h3>
+ * <p><strong>Thread Safety</strong></p>
  * <p>
  * This engine mutates the body object in-place via reflection. Callers (interceptors,
  * AOP aspects) must ensure they do not pass shared/cached DTO instances. The
@@ -84,12 +83,6 @@ public class DefaultTranslationEngine implements TranslationEngine {
             return body;
         }
 
-        // Prevent double translation within the same request scope
-        if (TranslationMarker.isAlreadyTranslated(body)) {
-            log.debug("Object already translated in this scope, skipping");
-            return body;
-        }
-
         // Handle plain String
         if (body instanceof String str) {
             return translateString(str, sourceLang, targetLang);
@@ -97,6 +90,13 @@ public class DefaultTranslationEngine implements TranslationEngine {
 
         try {
             TranslationMarker.beginScope();
+
+            // Prevent double translation within the same request scope
+            // (checked AFTER beginScope so stale state from previous requests is cleared)
+            if (TranslationMarker.isAlreadyTranslated(body)) {
+                log.debug("Object already translated in this scope, skipping");
+                return body;
+            }
 
             // Collect all translatable string references
             List<StringReference> references = objectTraverser.collectStrings(body);

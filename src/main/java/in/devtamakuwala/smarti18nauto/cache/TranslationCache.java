@@ -9,8 +9,8 @@ import java.util.function.Supplier;
 /**
  * Translation cache backed by Caffeine.
  * <p>
- * Uses a composite key of {@code sourceLang:targetLang:text} to avoid
- * collisions between different language pairs.
+ * Uses a composite key of {@code text_sourceLang_targetLang} (e.g., {@code hii_en_fr})
+ * to avoid collisions between different language pairs.
  * </p>
  *
  * @author devtamakuwala
@@ -94,9 +94,10 @@ public class TranslationCache {
     }
 
     private String buildKey(String sourceLang, String targetLang, String text) {
-        // Use full text — Caffeine handles internal hashing. Using hashCode() here
+        // Key format: text_sourceLang_targetLang (e.g., "hii_en_fr")
+        // Uses full text — Caffeine handles internal hashing. Using hashCode() here
         // would cause silent data corruption on hash collisions.
-        return sourceLang + ":" + targetLang + ":" + text;
+        return text + "_" + sourceLang + "_" + targetLang;
     }
 }
 

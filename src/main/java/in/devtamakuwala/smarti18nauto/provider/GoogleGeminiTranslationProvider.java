@@ -102,12 +102,35 @@ public class GoogleGeminiTranslationProvider implements TranslationProvider {
         ArrayNode parts = content.putArray("parts");
         parts.addObject().put("text", prompt);
 
+        // Serialize to JSON string ourselves to avoid WebClient using the consumer app's
+        // ObjectMapper, which may serialize Jackson ObjectNode metadata (isArray, isBoolean, etc.)
+        String jsonBody;
+        try {
+            jsonBody = objectMapper.writeValueAsString(requestBody);
+        } catch (Exception e) {
+            log.error("Failed to serialize Gemini request body", e);
+            return new ArrayList<>(texts);
+        }
+
+        log.debug("Gemini request: model={}, texts={}, prompt length={}", model, texts.size(), prompt.length());
+
         String responseBody = webClient.post()
-                .uri("/models/{model}:generateContent", model)
-                .header("X-Goog-Api-Key", apiKey)
+                .uri(uriBuilder -> uriBuilder
+                        .path("/models/" + model + ":generateContent")
+                        .queryParam("key", apiKey)
+                        .build())
                 .header("Content-Type", "application/json")
-                .bodyValue(requestBody)
+                .bodyValue(jsonBody)
                 .retrieve()
+                .onStatus(status -> status.isError(), response ->
+                        response.bodyToMono(String.class)
+                                .defaultIfEmpty("[no body]")
+                                .flatMap(errorBody -> {
+                                    log.error("Gemini API error {}: {}", response.statusCode(), errorBody);
+                                    return reactor.core.publisher.Mono.error(
+                                            new RuntimeException("Gemini API " + response.statusCode() + ": " + errorBody));
+                                })
+                )
                 .bodyToMono(String.class)
                 .block(timeout);
 

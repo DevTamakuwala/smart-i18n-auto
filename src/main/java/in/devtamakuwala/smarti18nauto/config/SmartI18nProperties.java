@@ -11,7 +11,7 @@ import java.util.List;
  * All properties are prefixed with {@code smart.i18n}.
  * </p>
  *
- * <h3>Example configuration:</h3>
+ * <p><strong>Example configuration:</strong></p>
  * <pre>
  * smart.i18n.enabled=true
  * smart.i18n.source-locale=en
