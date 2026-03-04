@@ -237,6 +237,7 @@ public class SmartI18nProperties {
          */
         private long timeoutMs = 10000;
 
+
         public String getActive() {
             return active;
         }

@@ -83,9 +83,24 @@ public class DefaultTranslationEngine implements TranslationEngine {
             return body;
         }
 
-        // Handle plain String
+        // Handle plain String directly — return new translated string
         if (body instanceof String str) {
             return translateString(str, sourceLang, targetLang);
+        }
+
+        // Skip primitive wrappers, numbers, booleans — nothing to translate
+        if (body instanceof Number || body instanceof Boolean || body instanceof Character) {
+            return body;
+        }
+
+        // Handle List at the top level (including List<String>, List<DTO>, etc.)
+        if (body instanceof List<?> list) {
+            return translateList(list, sourceLang, targetLang);
+        }
+
+        // Handle Map at the top level (including Map<String,String>, Map<String,Object>, etc.)
+        if (body instanceof Map<?, ?> map) {
+            return translateMap(map, sourceLang, targetLang);
         }
 
         try {
@@ -204,6 +219,206 @@ public class DefaultTranslationEngine implements TranslationEngine {
                 sourceLang, targetLang, text,
                 () -> providerFactory.translateWithFallback(text, sourceLang, targetLang)
         );
+    }
+
+    /**
+     * Translates a top-level List body. Handles lists of Strings directly
+     * via batch translation, and recursively translates non-String elements.
+     *
+     * @param list       the list to translate
+     * @param sourceLang source language
+     * @param targetLang target language
+     * @return the translated list (same instance, mutated in-place)
+     */
+    @SuppressWarnings("unchecked")
+    private Object translateList(List<?> list, String sourceLang, String targetLang) {
+        if (list.isEmpty()) {
+            return list;
+        }
+
+        List<Object> mutableList = (List<Object>) list;
+
+        // Check if it's a simple List<String> — translate efficiently via batch
+        boolean allStrings = list.stream().allMatch(e -> e == null || e instanceof String);
+        if (allStrings) {
+            // Collect translatable string indices and texts
+            List<Integer> translatableIndices = new ArrayList<>();
+            List<String> translatableTexts = new ArrayList<>();
+            for (int i = 0; i < mutableList.size(); i++) {
+                Object elem = mutableList.get(i);
+                if (elem instanceof String str && contentFilter.isTranslatable(str)
+                        && str.length() <= properties.getSafeguard().getMaxTextLength()) {
+                    translatableIndices.add(i);
+                    translatableTexts.add(str);
+                }
+            }
+
+            if (translatableTexts.isEmpty()) {
+                return list;
+            }
+
+            // Batch translate with caching
+            translateAndWriteBackStrings(translatableTexts, translatableIndices,
+                    mutableList, sourceLang, targetLang);
+            return list;
+        }
+
+        // Mixed list — recursively translate each element
+        for (int i = 0; i < mutableList.size(); i++) {
+            Object elem = mutableList.get(i);
+            if (elem == null) continue;
+
+            if (elem instanceof String str) {
+                String translated = (String) translateObject(str, sourceLang, targetLang);
+                mutableList.set(i, translated);
+            } else {
+                // Recursively translate nested objects (DTO, Map, List, etc.)
+                translateObject(elem, sourceLang, targetLang);
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Translates a top-level Map body. Translates String values in the map
+     * and recursively translates non-String values.
+     *
+     * @param map        the map to translate
+     * @param sourceLang source language
+     * @param targetLang target language
+     * @return the translated map (same instance, mutated in-place)
+     */
+    @SuppressWarnings("unchecked")
+    private Object translateMap(Map<?, ?> map, String sourceLang, String targetLang) {
+        if (map.isEmpty()) {
+            return map;
+        }
+
+        Map<Object, Object> mutableMap = (Map<Object, Object>) map;
+
+        // Collect translatable string entries
+        List<Object> stringKeys = new ArrayList<>();
+        List<String> stringValues = new ArrayList<>();
+        List<Map.Entry<Object, Object>> nonStringEntries = new ArrayList<>();
+
+        for (Map.Entry<Object, Object> entry : mutableMap.entrySet()) {
+            Object value = entry.getValue();
+            if (value instanceof String str) {
+                if (contentFilter.isTranslatable(str)
+                        && str.length() <= properties.getSafeguard().getMaxTextLength()) {
+                    stringKeys.add(entry.getKey());
+                    stringValues.add(str);
+                }
+            } else if (value != null) {
+                nonStringEntries.add(entry);
+            }
+        }
+
+        // Batch translate string values
+        if (!stringValues.isEmpty()) {
+            translateAndWriteBackMapStrings(stringValues, stringKeys, mutableMap, sourceLang, targetLang);
+        }
+
+        // Recursively translate non-string values
+        for (Map.Entry<Object, Object> entry : nonStringEntries) {
+            Object value = entry.getValue();
+             if (value instanceof String) {
+                // Already handled above
+                continue;
+            }
+            Object translated = translateObject(value, sourceLang, targetLang);
+            if (translated != value) {
+                mutableMap.put(entry.getKey(), translated);
+            }
+        }
+
+        return map;
+    }
+
+    /**
+     * Batch translates a list of strings, uses cache, and writes results back to a List.
+     */
+    private void translateAndWriteBackStrings(List<String> texts, List<Integer> indices,
+                                               List<Object> targetList,
+                                               String sourceLang, String targetLang) {
+        // Deduplicate
+        LinkedHashMap<String, List<Integer>> uniqueToPositions = new LinkedHashMap<>();
+        for (int i = 0; i < texts.size(); i++) {
+            uniqueToPositions.computeIfAbsent(texts.get(i), k -> new ArrayList<>()).add(i);
+        }
+
+        Map<String, String> resolved = new HashMap<>();
+        List<String> uncached = new ArrayList<>();
+
+        for (String text : uniqueToPositions.keySet()) {
+            String cached = translationCache.get(sourceLang, targetLang, text);
+            if (cached != null) {
+                resolved.put(text, cached);
+            } else {
+                uncached.add(text);
+            }
+        }
+
+        if (!uncached.isEmpty()) {
+            List<String> translated = providerFactory.translateBatchWithFallback(uncached, sourceLang, targetLang);
+            for (int i = 0; i < uncached.size(); i++) {
+                translationCache.put(sourceLang, targetLang, uncached.get(i), translated.get(i));
+                resolved.put(uncached.get(i), translated.get(i));
+            }
+        }
+
+        // Write back
+        for (Map.Entry<String, List<Integer>> entry : uniqueToPositions.entrySet()) {
+            String translatedText = resolved.get(entry.getKey());
+            if (translatedText != null) {
+                for (int pos : entry.getValue()) {
+                    targetList.set(indices.get(pos), translatedText);
+                }
+            }
+        }
+    }
+
+    /**
+     * Batch translates a list of strings, uses cache, and writes results back to a Map.
+     */
+    private void translateAndWriteBackMapStrings(List<String> texts, List<Object> keys,
+                                                  Map<Object, Object> targetMap,
+                                                  String sourceLang, String targetLang) {
+        // Deduplicate
+        LinkedHashMap<String, List<Integer>> uniqueToPositions = new LinkedHashMap<>();
+        for (int i = 0; i < texts.size(); i++) {
+            uniqueToPositions.computeIfAbsent(texts.get(i), k -> new ArrayList<>()).add(i);
+        }
+
+        Map<String, String> resolved = new HashMap<>();
+        List<String> uncached = new ArrayList<>();
+
+        for (String text : uniqueToPositions.keySet()) {
+            String cached = translationCache.get(sourceLang, targetLang, text);
+            if (cached != null) {
+                resolved.put(text, cached);
+            } else {
+                uncached.add(text);
+            }
+        }
+
+        if (!uncached.isEmpty()) {
+            List<String> translated = providerFactory.translateBatchWithFallback(uncached, sourceLang, targetLang);
+            for (int i = 0; i < uncached.size(); i++) {
+                translationCache.put(sourceLang, targetLang, uncached.get(i), translated.get(i));
+                resolved.put(uncached.get(i), translated.get(i));
+            }
+        }
+
+        // Write back
+        for (Map.Entry<String, List<Integer>> entry : uniqueToPositions.entrySet()) {
+            String translatedText = resolved.get(entry.getKey());
+            if (translatedText != null) {
+                for (int pos : entry.getValue()) {
+                    targetMap.put(keys.get(pos), translatedText);
+                }
+            }
+        }
     }
 }
 

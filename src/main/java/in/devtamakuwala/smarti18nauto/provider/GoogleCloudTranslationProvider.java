@@ -30,6 +30,11 @@ public class GoogleCloudTranslationProvider implements TranslationProvider {
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
 
+    /**
+     * Private clean ObjectMapper used exclusively for serializing API request bodies.
+     */
+    private static final ObjectMapper REQUEST_SERIALIZER = new ObjectMapper();
+
     public GoogleCloudTranslationProvider(SmartI18nProperties properties,
                                           WebClient.Builder webClientBuilder,
                                           ObjectMapper objectMapper) {
@@ -102,7 +107,7 @@ public class GoogleCloudTranslationProvider implements TranslationProvider {
         // ObjectMapper, which may serialize objects with unexpected extra fields
         String jsonBody;
         try {
-            jsonBody = objectMapper.writeValueAsString(requestBody);
+            jsonBody = REQUEST_SERIALIZER.writeValueAsString(requestBody);
         } catch (Exception e) {
             log.error("Failed to serialize Google Cloud Translation request body", e);
             return new ArrayList<>(texts);
@@ -142,4 +147,3 @@ public class GoogleCloudTranslationProvider implements TranslationProvider {
         }
     }
 }
-

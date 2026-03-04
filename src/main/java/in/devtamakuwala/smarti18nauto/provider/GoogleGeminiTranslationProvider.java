@@ -2,8 +2,6 @@ package in.devtamakuwala.smarti18nauto.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import in.devtamakuwala.smarti18nauto.config.SmartI18nProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +10,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Translation provider using Google Gemini API.
@@ -32,6 +31,15 @@ public class GoogleGeminiTranslationProvider implements TranslationProvider {
     private final SmartI18nProperties properties;
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
+
+    /**
+     * Private clean ObjectMapper used exclusively for serializing API request bodies.
+     * The injected ObjectMapper from the consumer application may have custom modules,
+     * mixins, or serialization features that cause Jackson tree nodes (ObjectNode, ArrayNode)
+     * to be serialized with metadata getter properties (isArray, isBoolean, etc.),
+     * resulting in 400 Bad Request from external APIs.
+     */
+    private static final ObjectMapper REQUEST_SERIALIZER = new ObjectMapper();
 
     public GoogleGeminiTranslationProvider(SmartI18nProperties properties,
                                            WebClient.Builder webClientBuilder,
@@ -96,17 +104,16 @@ public class GoogleGeminiTranslationProvider implements TranslationProvider {
 
         String prompt = buildPrompt(texts, sourceLang, targetLang);
 
-        ObjectNode requestBody = objectMapper.createObjectNode();
-        ArrayNode contents = requestBody.putArray("contents");
-        ObjectNode content = contents.addObject();
-        ArrayNode parts = content.putArray("parts");
-        parts.addObject().put("text", prompt);
+        // Build request body using plain Maps/Lists to avoid Jackson ObjectNode metadata
+        // serialization issues with the consumer's ObjectMapper
+        Map<String, Object> partMap = Map.of("text", prompt);
+        Map<String, Object> contentMap = Map.of("parts", List.of(partMap));
+        Map<String, Object> requestBody = Map.of("contents", List.of(contentMap));
 
-        // Serialize to JSON string ourselves to avoid WebClient using the consumer app's
-        // ObjectMapper, which may serialize Jackson ObjectNode metadata (isArray, isBoolean, etc.)
+        // Use the clean private ObjectMapper for serialization to guarantee correct JSON
         String jsonBody;
         try {
-            jsonBody = objectMapper.writeValueAsString(requestBody);
+            jsonBody = REQUEST_SERIALIZER.writeValueAsString(requestBody);
         } catch (Exception e) {
             log.error("Failed to serialize Gemini request body", e);
             return new ArrayList<>(texts);
@@ -199,4 +206,3 @@ public class GoogleGeminiTranslationProvider implements TranslationProvider {
         }
     }
 }
-

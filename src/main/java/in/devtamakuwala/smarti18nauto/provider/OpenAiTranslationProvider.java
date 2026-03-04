@@ -2,8 +2,6 @@ package in.devtamakuwala.smarti18nauto.provider;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import in.devtamakuwala.smarti18nauto.config.SmartI18nProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +10,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Translation provider using OpenAI Chat Completion API.
@@ -31,6 +30,15 @@ public class OpenAiTranslationProvider implements TranslationProvider {
     private final SmartI18nProperties properties;
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
+
+    /**
+     * Private clean ObjectMapper used exclusively for serializing API request bodies.
+     * The injected ObjectMapper from the consumer application may have custom modules,
+     * mixins, or serialization features that cause Jackson tree nodes (ObjectNode, ArrayNode)
+     * to be serialized with metadata getter properties (isArray, isBoolean, etc.),
+     * resulting in 400 Bad Request from external APIs.
+     */
+    private static final ObjectMapper REQUEST_SERIALIZER = new ObjectMapper();
 
     public OpenAiTranslationProvider(SmartI18nProperties properties,
                                       WebClient.Builder webClientBuilder,
@@ -105,26 +113,25 @@ public class OpenAiTranslationProvider implements TranslationProvider {
             userPrompt.append(i + 1).append(". ").append(texts.get(i)).append("\n");
         }
 
-        ObjectNode requestBody = objectMapper.createObjectNode();
-        requestBody.put("model", model);
-
-        ArrayNode messages = requestBody.putArray("messages");
-
-        ObjectNode systemMsg = messages.addObject();
+        // Build request body using plain Maps/Lists to avoid Jackson ObjectNode metadata
+        // serialization issues with the consumer's ObjectMapper
+        Map<String, Object> systemMsg = new java.util.LinkedHashMap<>();
         systemMsg.put("role", "system");
         systemMsg.put("content", systemPrompt);
 
-        ObjectNode userMsg = messages.addObject();
+        Map<String, Object> userMsg = new java.util.LinkedHashMap<>();
         userMsg.put("role", "user");
         userMsg.put("content", userPrompt.toString());
 
+        Map<String, Object> requestBody = new java.util.LinkedHashMap<>();
+        requestBody.put("model", model);
+        requestBody.put("messages", List.of(systemMsg, userMsg));
         requestBody.put("temperature", 0.1);
 
-        // Serialize to JSON string ourselves to avoid WebClient using the consumer app's
-        // ObjectMapper, which may serialize Jackson ObjectNode metadata as extra fields
+        // Use the clean private ObjectMapper for serialization to guarantee correct JSON
         String jsonBody;
         try {
-            jsonBody = objectMapper.writeValueAsString(requestBody);
+            jsonBody = REQUEST_SERIALIZER.writeValueAsString(requestBody);
         } catch (Exception e) {
             log.error("Failed to serialize OpenAI request body", e);
             return new ArrayList<>(texts);
@@ -187,4 +194,3 @@ public class OpenAiTranslationProvider implements TranslationProvider {
         }
     }
 }
-
