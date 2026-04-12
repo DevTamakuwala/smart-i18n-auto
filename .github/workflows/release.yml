@@ -25,6 +25,12 @@ jobs:
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
           gpg --list-secret-keys
 
+      - name: Configure GPG
+        run: |
+          mkdir -p ~/.gnupg
+          echo "use-agent" >> ~/.gnupg/gpg.conf
+          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+
       - name: Configure Maven
         run: |
           mkdir -p ~/.m2
@@ -41,6 +47,6 @@ jobs:
           EOF
 
       - name: Publish
-        run: mvn -B clean deploy -Prelease
+        run: mvn -B clean deploy -Prelease -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} -Dgpg.pinentry.mode=loopback
         env:
           GPG_TTY: $(tty)
