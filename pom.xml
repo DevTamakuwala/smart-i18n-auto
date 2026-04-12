@@ -7,12 +7,12 @@
 
     <groupId>in.devtamakuwala</groupId>
     <artifactId>smart-i18n-auto</artifactId>
-    <version>0.0.1</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>Smart I18N Auto</name>
     <description>Plug and play automatic i18n middleware for Spring Boot</description>
-    <url>https://github.com/yourusername/smart-i18n-auto</url>
+    <url>https://github.com/DevTamakuwala/smart-i18n-auto</url>
 
     <licenses>
         <license>
@@ -24,15 +24,15 @@
     <developers>
         <developer>
             <id>devtamakuwala</id>
-            <name>Your Name</name>
-            <email>your@email.com</email>
+            <name>Dev Tamakuwala</name>
+            <email>dev.official2424@gmail.com</email>
         </developer>
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/yourusername/smart-i18n-auto.git</connection>
-        <developerConnection>scm:git:ssh://github.com:yourusername/smart-i18n-auto.git</developerConnection>
-        <url>https://github.com/yourusername/smart-i18n-auto</url>
+        <connection>scm:git:git://github.com/DevTamakuwala/smart-i18n-auto.git</connection>
+        <developerConnection>scm:git:git@github.com:DevTamakuwala/smart-i18n-auto.git</developerConnection>
+        <url>https://github.com/DevTamakuwala/smart-i18n-auto</url>
     </scm>
 
     <properties>
@@ -144,6 +144,18 @@
 
     </dependencies>
 
+    <distributionManagement>
+        <repository>
+            <id>central</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <organization>
+        <name>Dev Tamakuwala</name>
+        <url>https://github.com/DevTamakuwala</url>
+    </organization>
+
     <build>
         <plugins>
 
@@ -153,8 +165,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <release>${java.version}</release>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>

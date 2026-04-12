@@ -112,7 +112,7 @@ Client Response
 <dependency>
     <groupId>in.devtamakuwala</groupId>
     <artifactId>smart-i18n-auto</artifactId>
-    <version>0.0.1</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
@@ -163,14 +163,14 @@ That's it. No message bundles. No `LocaleResolver`. No boilerplate.
 <dependency>
     <groupId>in.devtamakuwala</groupId>
     <artifactId>smart-i18n-auto</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-implementation 'in.devtamakuwala:smart-i18n-auto:0.0.1'
+implementation 'in.devtamakuwala:smart-i18n-auto:0.0.2'
 ```
 
 ### Requirements
@@ -709,7 +709,7 @@ cd smart-i18n-auto
 mvn clean install -Dgpg.skip=true
 ```
 
-This installs `smart-i18n-auto-0.0.1.jar` into your local `~/.m2/repository`.
+This installs `smart-i18n-auto-0.0.2.jar` into your local `~/.m2/repository`.
 
 ### Step 2: Create a Test Application
 
@@ -719,7 +719,7 @@ Create a new Spring Boot 4 project and add the dependency:
 <dependency>
     <groupId>in.devtamakuwala</groupId>
     <artifactId>smart-i18n-auto</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 
@@ -945,7 +945,7 @@ Contributions are welcome! Please:
 ### Development Setup
 
 ```bash
-git clone https://github.com/devtamakuwala/smart-i18n-auto.git
+git clone https://github.com/DevTamakuwala/smart-i18n-auto.git
 cd smart-i18n-auto
 mvn clean compile
 mvn test
