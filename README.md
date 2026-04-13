@@ -24,6 +24,7 @@ Server: { "greeting": "Bonjour le monde" }  ← was "Hello World" in code
 - [Features](#-features)
 - [Quick Start](#-quick-start)
 - [Installation](#-installation)
+- [Maven Central](#-maven-central)
 - [Configuration](#-configuration)
   - [Google Cloud Translation](#google-cloud-translation-api-v2)
   - [Google Gemini](#google-gemini-api)
@@ -37,6 +38,7 @@ Server: { "greeting": "Bonjour le monde" }  ← was "Hello World" in code
 - [Performance](#-performance)
 - [Security](#-security)
 - [Testing Locally](#-testing-locally)
+- [Release Checklist](#-release-checklist)
 - [Roadmap](#-roadmap)
 - [Contributing](#-contributing)
 - [License](#-license)
@@ -163,23 +165,35 @@ That's it. No message bundles. No `LocaleResolver`. No boilerplate.
 <dependency>
     <groupId>in.devtamakuwala</groupId>
     <artifactId>smart-i18n-auto</artifactId>
-    <version>0.0.2</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-implementation 'in.devtamakuwala:smart-i18n-auto:0.0.2'
+implementation 'in.devtamakuwala:smart-i18n-auto:1.0.0'
 ```
 
-### Requirements
+> Use the latest released version when a newer one is available on Maven Central.
 
-| Requirement | Version |
-|-------------|---------|
-| Java | 21+ |
-| Spring Boot | 4.0.x |
-| Jakarta Servlet | 6.x (provided by Spring Boot) |
+---
+
+## 🏛 Maven Central
+
+Coordinates:
+
+```xml
+<dependency>
+    <groupId>in.devtamakuwala</groupId>
+    <artifactId>smart-i18n-auto</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+- GroupId namespace: `in.devtamakuwala`
+- ArtifactId: `smart-i18n-auto`
+- Repository: `https://github.com/DevTamakuwala/smart-i18n-auto`
 
 ---
 
@@ -709,7 +723,7 @@ cd smart-i18n-auto
 mvn clean install -Dgpg.skip=true
 ```
 
-This installs `smart-i18n-auto-0.0.2.jar` into your local `~/.m2/repository`.
+This installs `smart-i18n-auto-1.0.0.jar` into your local `~/.m2/repository`.
 
 ### Step 2: Create a Test Application
 
@@ -719,7 +733,7 @@ Create a new Spring Boot 4 project and add the dependency:
 <dependency>
     <groupId>in.devtamakuwala</groupId>
     <artifactId>smart-i18n-auto</artifactId>
-    <version>0.0.2</version>
+    <version>1.0.0</version>
 </dependency>
 ```
 
@@ -899,16 +913,37 @@ Logs will show: `Translating 2 unique uncached strings (out of 2 unique, 4 total
 
 ---
 
+## ✅ Release Checklist
+
+Before publishing a new version to Maven Central, verify:
+
+- `pom.xml` has the correct `groupId`, `artifactId`, `version`, license, SCM, and developer metadata.
+- `README.md` dependency snippets match `pom.xml` version.
+- Unit tests pass and artifacts build locally.
+- GPG signing works with the `release` profile.
+- Sonatype Central credentials exist under server id `central` in `~/.m2/settings.xml`.
+
+### Local verification commands
+
+```bash
+mvn clean verify
+mvn clean deploy -Prelease -DskipTests
+```
+
+> Use `deploy` only when you are ready to publish. For day-to-day local testing, prefer `mvn clean install`.
+
+---
+
 ## 🗺️ Roadmap
 
-### v0.1.0
+### v1.1.0
 
 - [ ] Reactive (`WebFlux`) support via `ServerResponse` advice
 - [ ] Rate limiter (Resilience4j / Bucket4j) for per-minute API budget
 - [ ] Metrics export (Micrometer) — cache hit ratio, API latency, translation count
 - [ ] Redis / Hazelcast distributed cache adapter
 
-### v0.2.0
+### v1.2.0
 
 - [ ] Language detection from request body content (auto-detect source language)
 - [ ] Glossary / terminology override map (domain-specific terms)
@@ -916,19 +951,14 @@ Logs will show: `Translating 2 unique uncached strings (out of 2 unique, 4 total
 - [ ] DeepL provider
 - [ ] Azure Cognitive Services Translator provider
 
-### v0.3.0
+### Future
 
 - [ ] Admin endpoint — cache stats, provider health, live config reload
 - [ ] Annotation `@TranslateField` for selective per-field provider override
 - [ ] Spring Boot Actuator health indicator
 - [ ] GraalVM native image compatibility
-
-### Future
-
 - [ ] Persistent cache (JDBC / MongoDB backed)
 - [ ] Translation memory with quality scoring
-- [ ] Webhook for translation review workflow
-- [ ] Spring Cloud Config integration for API key rotation
 
 ---
 
@@ -951,7 +981,7 @@ mvn clean compile
 mvn test
 ```
 
-All 54 tests should pass.
+All tests should pass.
 
 ---
 
