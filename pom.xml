@@ -7,7 +7,7 @@
 
     <groupId>in.devtamakuwala</groupId>
     <artifactId>smart-i18n-auto</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>Smart I18N Auto</name>
