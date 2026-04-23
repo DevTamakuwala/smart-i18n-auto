@@ -1,8 +1,7 @@
 package in.devtamakuwala.smarti18nauto.provider;
 
 import in.devtamakuwala.smarti18nauto.config.SmartI18nProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import in.devtamakuwala.smarti18nauto.util.SmartI18nLogger;
 
 import java.util.Comparator;
 import java.util.List;
@@ -25,7 +24,7 @@ import java.util.Optional;
  */
 public class TranslationProviderFactory {
 
-    private static final Logger log = LoggerFactory.getLogger(TranslationProviderFactory.class);
+    private static final SmartI18nLogger log = SmartI18nLogger.getLogger(TranslationProviderFactory.class);
 
     private final List<TranslationProvider> providers;
     private final SmartI18nProperties properties;
@@ -94,7 +93,12 @@ public class TranslationProviderFactory {
         boolean fallbackEnabled = properties.getProvider().isFallbackEnabled();
 
         if (!fallbackEnabled) {
-            return getPrimaryProvider().translateBatch(texts, sourceLang, targetLang);
+            TranslationProvider primary = getPrimaryProvider();
+            log.debug("API_INVOKE provider={} mode=primary-only source={} target={} items={}",
+                    primary.getName(), sourceLang, targetLang, texts.size());
+            List<String> result = primary.translateBatch(texts, sourceLang, targetLang);
+            log.debug("API_SUCCESS provider={} items={}", primary.getName(), result != null ? result.size() : 0);
+            return result;
         }
 
         // Try each available provider in order
@@ -124,9 +128,11 @@ public class TranslationProviderFactory {
 
         for (TranslationProvider provider : ordered) {
             try {
-                log.debug("Attempting translation with provider: {}", provider.getName());
+                log.debug("API_INVOKE provider={} mode=fallback source={} target={} items={}",
+                        provider.getName(), sourceLang, targetLang, texts.size());
                 List<String> result = provider.translateBatch(texts, sourceLang, targetLang);
                 if (result != null && result.size() == texts.size()) {
+                    log.debug("API_SUCCESS provider={} items={}", provider.getName(), result.size());
                     return result;
                 }
             } catch (Exception e) {

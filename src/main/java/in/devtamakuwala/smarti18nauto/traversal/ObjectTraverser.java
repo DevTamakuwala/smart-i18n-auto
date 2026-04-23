@@ -2,8 +2,7 @@ package in.devtamakuwala.smarti18nauto.traversal;
 
 import in.devtamakuwala.smarti18nauto.annotation.SkipTranslation;
 import in.devtamakuwala.smarti18nauto.filter.ContentFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import in.devtamakuwala.smarti18nauto.util.SmartI18nLogger;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -32,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ObjectTraverser {
 
-    private static final Logger log = LoggerFactory.getLogger(ObjectTraverser.class);
+    private static final SmartI18nLogger log = SmartI18nLogger.getLogger(ObjectTraverser.class);
 
     /**
      * Packages that should never be traversed into (JDK and framework internals).

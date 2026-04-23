@@ -13,8 +13,7 @@ import in.devtamakuwala.smarti18nauto.interceptor.TranslationResponseBodyAdvice;
 import in.devtamakuwala.smarti18nauto.provider.*;
 import in.devtamakuwala.smarti18nauto.traversal.ObjectTraverser;
 import in.devtamakuwala.smarti18nauto.util.LanguageDetectionUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import in.devtamakuwala.smarti18nauto.util.SmartI18nLogger;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -43,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 @EnableConfigurationProperties(SmartI18nProperties.class)
 public class SmartI18nAutoConfiguration {
 
-    private static final Logger log = LoggerFactory.getLogger(SmartI18nAutoConfiguration.class);
+    private static final SmartI18nLogger log = SmartI18nLogger.getLogger(SmartI18nAutoConfiguration.class);
 
     // ============================================================
     // Core beans
@@ -52,7 +51,7 @@ public class SmartI18nAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public ContentFilter smartI18nContentFilter(SmartI18nProperties properties) {
-        log.info("Smart I18N Auto: Registering ContentFilter");
+        log.info("Registering ContentFilter");
         return new ContentFilter(properties);
     }
 
@@ -75,7 +74,7 @@ public class SmartI18nAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(name = "smartI18nCaffeineCache")
     public Cache<String, String> smartI18nCaffeineCache(SmartI18nProperties properties) {
-        log.info("Smart I18N Auto: Configuring Caffeine cache (TTL={}min, maxSize={})",
+        log.info("Configuring Caffeine cache (TTL={}min, maxSize={})",
                 properties.getCache().getTtlMinutes(), properties.getCache().getMaxSize());
         return Caffeine.newBuilder()
                 .expireAfterWrite(properties.getCache().getTtlMinutes(), TimeUnit.MINUTES)
@@ -138,7 +137,7 @@ public class SmartI18nAutoConfiguration {
                 SmartI18nProperties properties,
                 WebClient.Builder webClientBuilder,
                 ObjectMapper objectMapper) {
-            log.info("Smart I18N Auto: Registering Google Cloud Translation provider");
+            log.info("Registering Google Cloud Translation provider");
             return new GoogleCloudTranslationProvider(properties, safeBuilder(webClientBuilder, properties), objectMapper);
         }
 
@@ -149,7 +148,7 @@ public class SmartI18nAutoConfiguration {
                 SmartI18nProperties properties,
                 WebClient.Builder webClientBuilder,
                 ObjectMapper objectMapper) {
-            log.info("Smart I18N Auto: Registering Google Gemini translation provider");
+            log.info("Registering Google Gemini translation provider");
             return new GoogleGeminiTranslationProvider(properties, safeBuilder(webClientBuilder, properties), objectMapper);
         }
 
@@ -160,7 +159,7 @@ public class SmartI18nAutoConfiguration {
                 SmartI18nProperties properties,
                 WebClient.Builder webClientBuilder,
                 ObjectMapper objectMapper) {
-            log.info("Smart I18N Auto: Registering OpenAI translation provider");
+            log.info("Registering OpenAI translation provider");
             return new OpenAiTranslationProvider(properties, safeBuilder(webClientBuilder, properties), objectMapper);
         }
     }
@@ -170,7 +169,7 @@ public class SmartI18nAutoConfiguration {
     public TranslationProviderFactory smartI18nProviderFactory(
             List<TranslationProvider> providers,
             SmartI18nProperties properties) {
-        log.info("Smart I18N Auto: Initializing provider factory with {} provider(s): {}",
+        log.info("Initializing provider factory with {} provider(s): {}",
                 providers.size(),
                 providers.stream().map(TranslationProvider::getName).toList());
         return new TranslationProviderFactory(providers, properties);
@@ -188,7 +187,7 @@ public class SmartI18nAutoConfiguration {
             ObjectTraverser objectTraverser,
             ContentFilter contentFilter,
             SmartI18nProperties properties) {
-        log.info("Smart I18N Auto: Registering DefaultTranslationEngine");
+        log.info("Registering DefaultTranslationEngine");
         return new DefaultTranslationEngine(providerFactory, translationCache, objectTraverser, contentFilter, properties);
     }
 
@@ -208,7 +207,7 @@ public class SmartI18nAutoConfiguration {
                 LanguageDetectionUtil languageDetectionUtil,
                 SmartI18nProperties properties,
                 ObjectMapper objectMapper) {
-            log.info("Smart I18N Auto: Registering response body translation advice");
+            log.info("Registering response body translation advice");
             return new TranslationResponseBodyAdvice(translationEngine, languageDetectionUtil, properties, objectMapper);
         }
 
@@ -219,7 +218,7 @@ public class SmartI18nAutoConfiguration {
                 TranslationEngine translationEngine,
                 LanguageDetectionUtil languageDetectionUtil,
                 SmartI18nProperties properties) {
-            log.info("Smart I18N Auto: Registering request body translation advice");
+            log.info("Registering request body translation advice");
             return new TranslationRequestBodyAdvice(translationEngine, languageDetectionUtil, properties);
         }
     }
@@ -239,7 +238,7 @@ public class SmartI18nAutoConfiguration {
                 LanguageDetectionUtil languageDetectionUtil,
                 SmartI18nProperties properties,
                 ObjectMapper objectMapper) {
-            log.info("Smart I18N Auto: Registering translation AOP aspect");
+            log.info("Registering translation AOP aspect");
             return new TranslationAspect(translationEngine, languageDetectionUtil, properties, objectMapper);
         }
     }

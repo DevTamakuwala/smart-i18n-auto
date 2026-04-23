@@ -119,9 +119,9 @@
     {
       "name": "smart.i18n.provider.active",
       "values": [
-        { "value": "google-cloud", "description": "Google Cloud Translation API v2" },
-        { "value": "gemini", "description": "Google Gemini API" },
-        { "value": "openai", "description": "OpenAI Chat Completion API" }
+        { "value": "google-cloud", "description": "Google Cloud Translation API v2." },
+        { "value": "gemini", "description": "Google Gemini API." },
+        { "value": "openai", "description": "OpenAI Chat Completion API." }
       ]
     }
   ]

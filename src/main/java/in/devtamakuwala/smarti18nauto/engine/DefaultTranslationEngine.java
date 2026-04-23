@@ -6,9 +6,8 @@ import in.devtamakuwala.smarti18nauto.filter.ContentFilter;
 import in.devtamakuwala.smarti18nauto.provider.TranslationProviderFactory;
 import in.devtamakuwala.smarti18nauto.traversal.ObjectTraverser;
 import in.devtamakuwala.smarti18nauto.traversal.StringReference;
+import in.devtamakuwala.smarti18nauto.util.SmartI18nLogger;
 import in.devtamakuwala.smarti18nauto.util.TranslationMarker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -41,7 +40,7 @@ import java.util.*;
  */
 public class DefaultTranslationEngine implements TranslationEngine {
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultTranslationEngine.class);
+    private static final SmartI18nLogger log = SmartI18nLogger.getLogger(DefaultTranslationEngine.class);
 
     private final TranslationProviderFactory providerFactory;
     private final TranslationCache translationCache;
@@ -160,6 +159,9 @@ public class DefaultTranslationEngine implements TranslationEngine {
             }
 
             if (!uncachedTexts.isEmpty()) {
+                int cacheHits = uniqueTextToIndices.size() - uncachedTexts.size();
+                log.debug("CACHE_SUMMARY source={} target={} unique={} hits={} misses={} -> calling provider API",
+                        sourceLang, targetLang, uniqueTextToIndices.size(), cacheHits, uncachedTexts.size());
                 log.debug("Translating {} unique uncached strings (out of {} unique, {} total refs)",
                         uncachedTexts.size(), uniqueTextToIndices.size(), references.size());
 
@@ -175,6 +177,8 @@ public class DefaultTranslationEngine implements TranslationEngine {
                     resolvedTranslations.put(original, translatedText);
                 }
             } else {
+                log.debug("CACHE_SUMMARY source={} target={} unique={} hits={} misses=0 -> no API call",
+                        sourceLang, targetLang, uniqueTextToIndices.size(), uniqueTextToIndices.size());
                 log.debug("All {} unique strings were cache hits", uniqueTextToIndices.size());
             }
 
@@ -360,11 +364,17 @@ public class DefaultTranslationEngine implements TranslationEngine {
         }
 
         if (!uncached.isEmpty()) {
+            int cacheHits = uniqueToPositions.size() - uncached.size();
+            log.debug("CACHE_SUMMARY scope=list source={} target={} unique={} hits={} misses={} -> calling provider API",
+                    sourceLang, targetLang, uniqueToPositions.size(), cacheHits, uncached.size());
             List<String> translated = providerFactory.translateBatchWithFallback(uncached, sourceLang, targetLang);
             for (int i = 0; i < uncached.size(); i++) {
                 translationCache.put(sourceLang, targetLang, uncached.get(i), translated.get(i));
                 resolved.put(uncached.get(i), translated.get(i));
             }
+        } else {
+            log.debug("CACHE_SUMMARY scope=list source={} target={} unique={} hits={} misses=0 -> no API call",
+                    sourceLang, targetLang, uniqueToPositions.size(), uniqueToPositions.size());
         }
 
         // Write back
@@ -403,11 +413,17 @@ public class DefaultTranslationEngine implements TranslationEngine {
         }
 
         if (!uncached.isEmpty()) {
+            int cacheHits = uniqueToPositions.size() - uncached.size();
+            log.debug("CACHE_SUMMARY scope=map source={} target={} unique={} hits={} misses={} -> calling provider API",
+                    sourceLang, targetLang, uniqueToPositions.size(), cacheHits, uncached.size());
             List<String> translated = providerFactory.translateBatchWithFallback(uncached, sourceLang, targetLang);
             for (int i = 0; i < uncached.size(); i++) {
                 translationCache.put(sourceLang, targetLang, uncached.get(i), translated.get(i));
                 resolved.put(uncached.get(i), translated.get(i));
             }
+        } else {
+            log.debug("CACHE_SUMMARY scope=map source={} target={} unique={} hits={} misses=0 -> no API call",
+                    sourceLang, targetLang, uniqueToPositions.size(), uniqueToPositions.size());
         }
 
         // Write back

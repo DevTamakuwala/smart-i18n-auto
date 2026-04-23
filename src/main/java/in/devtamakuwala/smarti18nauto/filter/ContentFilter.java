@@ -1,8 +1,7 @@
 package in.devtamakuwala.smarti18nauto.filter;
 
 import in.devtamakuwala.smarti18nauto.config.SmartI18nProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import in.devtamakuwala.smarti18nauto.util.SmartI18nLogger;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -27,7 +26,7 @@ import java.util.regex.Pattern;
  */
 public class ContentFilter {
 
-    private static final Logger log = LoggerFactory.getLogger(ContentFilter.class);
+    private static final SmartI18nLogger log = SmartI18nLogger.getLogger(ContentFilter.class);
 
     /** Matches integers, decimals, scientific notation */
     private static final Pattern NUMERIC_PATTERN =

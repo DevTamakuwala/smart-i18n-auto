@@ -5,11 +5,10 @@ import in.devtamakuwala.smarti18nauto.annotation.AutoTranslate;
 import in.devtamakuwala.smarti18nauto.config.SmartI18nProperties;
 import in.devtamakuwala.smarti18nauto.engine.TranslationEngine;
 import in.devtamakuwala.smarti18nauto.util.LanguageDetectionUtil;
+import in.devtamakuwala.smarti18nauto.util.SmartI18nLogger;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * AOP aspect for translating return values of methods annotated with {@link AutoTranslate}.
@@ -25,7 +24,7 @@ import org.slf4j.LoggerFactory;
 @Aspect
 public class TranslationAspect {
 
-    private static final Logger log = LoggerFactory.getLogger(TranslationAspect.class);
+    private static final SmartI18nLogger log = SmartI18nLogger.getLogger(TranslationAspect.class);
 
     private final TranslationEngine translationEngine;
     private final LanguageDetectionUtil languageDetectionUtil;

@@ -3,8 +3,7 @@ package in.devtamakuwala.smarti18nauto.provider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import in.devtamakuwala.smarti18nauto.config.SmartI18nProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import in.devtamakuwala.smarti18nauto.util.SmartI18nLogger;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Duration;
@@ -23,7 +22,7 @@ import java.util.Map;
  */
 public class GoogleCloudTranslationProvider implements TranslationProvider {
 
-    private static final Logger log = LoggerFactory.getLogger(GoogleCloudTranslationProvider.class);
+    private static final SmartI18nLogger log = SmartI18nLogger.getLogger(GoogleCloudTranslationProvider.class);
     private static final String API_URL = "https://translation.googleapis.com/language/translate/v2";
 
     private final SmartI18nProperties properties;
@@ -95,6 +94,9 @@ public class GoogleCloudTranslationProvider implements TranslationProvider {
     private List<String> executeBatch(List<String> texts, String sourceLang, String targetLang) {
         String apiKey = properties.getGoogleCloud().getApiKey();
         Duration timeout = Duration.ofMillis(properties.getProvider().getTimeoutMs());
+
+        log.debug("API_HTTP_CALL provider=google-cloud source={} target={} items={}",
+                sourceLang, targetLang, texts.size());
 
         // Build JSON POST body
         Map<String, Object> requestBody = new java.util.LinkedHashMap<>();

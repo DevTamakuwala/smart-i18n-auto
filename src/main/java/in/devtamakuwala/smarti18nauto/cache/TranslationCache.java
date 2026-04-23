@@ -1,8 +1,7 @@
 package in.devtamakuwala.smarti18nauto.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import in.devtamakuwala.smarti18nauto.util.SmartI18nLogger;
 
 import java.util.function.Supplier;
 
@@ -18,7 +17,7 @@ import java.util.function.Supplier;
  */
 public class TranslationCache {
 
-    private static final Logger log = LoggerFactory.getLogger(TranslationCache.class);
+    private static final SmartI18nLogger log = SmartI18nLogger.getLogger(TranslationCache.class);
 
     private final Cache<String, String> cache;
 
@@ -40,14 +39,19 @@ public class TranslationCache {
         String key = buildKey(sourceLang, targetLang, text);
         String cached = cache.getIfPresent(key);
         if (cached != null) {
-            log.trace("Cache hit for key: {}", key);
+            log.debug("CACHE_HIT source={} target={} textLength={}",
+                    sourceLang, targetLang, text != null ? text.length() : 0);
             return cached;
         }
+
+        log.debug("CACHE_MISS source={} target={} textLength={} - invoking translation provider",
+                sourceLang, targetLang, text != null ? text.length() : 0);
 
         String translated = translator.get();
         if (translated != null) {
             cache.put(key, translated);
-            log.trace("Cache miss, stored translation for key: {}", key);
+            log.debug("CACHE_STORE source={} target={} textLength={}",
+                    sourceLang, targetLang, text != null ? text.length() : 0);
         }
         return translated;
     }
@@ -61,7 +65,12 @@ public class TranslationCache {
      * @return cached translation, or null
      */
     public String get(String sourceLang, String targetLang, String text) {
-        return cache.getIfPresent(buildKey(sourceLang, targetLang, text));
+        String cached = cache.getIfPresent(buildKey(sourceLang, targetLang, text));
+        if (cached != null) {
+            log.debug("CACHE_HIT source={} target={} textLength={}",
+                    sourceLang, targetLang, text != null ? text.length() : 0);
+        }
+        return cached;
     }
 
     /**

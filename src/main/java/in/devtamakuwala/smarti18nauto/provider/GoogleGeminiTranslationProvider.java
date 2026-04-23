@@ -3,8 +3,7 @@ package in.devtamakuwala.smarti18nauto.provider;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import in.devtamakuwala.smarti18nauto.config.SmartI18nProperties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import in.devtamakuwala.smarti18nauto.util.SmartI18nLogger;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Duration;
@@ -25,7 +24,7 @@ import java.util.Map;
  */
 public class GoogleGeminiTranslationProvider implements TranslationProvider {
 
-    private static final Logger log = LoggerFactory.getLogger(GoogleGeminiTranslationProvider.class);
+    private static final SmartI18nLogger log = SmartI18nLogger.getLogger(GoogleGeminiTranslationProvider.class);
     private static final String API_URL = "https://generativelanguage.googleapis.com/v1beta";
 
     private final SmartI18nProperties properties;
@@ -101,6 +100,9 @@ public class GoogleGeminiTranslationProvider implements TranslationProvider {
         String apiKey = properties.getGemini().getApiKey();
         String model = properties.getGemini().getModel();
         Duration timeout = Duration.ofMillis(properties.getProvider().getTimeoutMs());
+
+        log.debug("API_HTTP_CALL provider=gemini source={} target={} items={}",
+                sourceLang, targetLang, texts.size());
 
         String prompt = buildPrompt(texts, sourceLang, targetLang);
 

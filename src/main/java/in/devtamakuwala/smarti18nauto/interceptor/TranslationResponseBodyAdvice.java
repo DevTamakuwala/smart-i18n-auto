@@ -6,8 +6,7 @@ import in.devtamakuwala.smarti18nauto.annotation.AutoTranslate;
 import in.devtamakuwala.smarti18nauto.config.SmartI18nProperties;
 import in.devtamakuwala.smarti18nauto.engine.TranslationEngine;
 import in.devtamakuwala.smarti18nauto.util.LanguageDetectionUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import in.devtamakuwala.smarti18nauto.util.SmartI18nLogger;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -35,7 +34,7 @@ import java.lang.reflect.Type;
 @RestControllerAdvice
 public class TranslationResponseBodyAdvice implements ResponseBodyAdvice<Object> {
 
-    private static final Logger log = LoggerFactory.getLogger(TranslationResponseBodyAdvice.class);
+    private static final SmartI18nLogger log = SmartI18nLogger.getLogger(TranslationResponseBodyAdvice.class);
 
     private final TranslationEngine translationEngine;
     private final LanguageDetectionUtil languageDetectionUtil;
