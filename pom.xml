@@ -7,7 +7,7 @@
 
     <groupId>in.devtamakuwala</groupId>
     <artifactId>smart-i18n-auto</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <packaging>jar</packaging>
 
     <name>Smart I18N Auto</name>
@@ -74,18 +74,21 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
+            <version>7.0.7</version>
         </dependency>
 
         <!-- WebClient -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webflux</artifactId>
+            <version>7.0.7</version>
         </dependency>
 
         <!-- Spring Web MVC (optional - only needed for ResponseBodyAdvice / RequestBodyAdvice) -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
+            <version>7.0.7</version>
             <optional>true</optional>
         </dependency>
 
