@@ -1,9 +1,8 @@
 name: Publish to Maven Central
 
 on:
-  push:
-    tags:
-      - 'v*'
+  release:
+    types: [published]
 
 jobs:
   publish:
@@ -11,8 +10,10 @@ jobs:
 
     steps:
 
-      - name: Checkout
+      - name: Checkout code at release tag
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
